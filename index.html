@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Маргошка спортик</title>
+<link rel="icon" href="img/legs.jpg">
+<link rel="apple-touch-icon" href="img/legs.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:wght@600;700;800;900&family=Geologica:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#F4F1F8;--muted:#C9C3D6;--rose:#F4C9C3;--dark:#0B0A10;--card:#120F1A;
+  --glass:rgba(255,255,255,0.07);--glass2:rgba(255,255,255,0.05);--line:rgba(255,255,255,0.14);--line2:rgba(255,255,255,0.22);
+  --cond:"Fira Sans Extra Condensed","Arial Narrow",sans-serif;
+  --body:Geologica,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;background:#000;color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased}
+body{min-height:100vh}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--rose)}
+:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+.sky{position:fixed;inset:0;z-index:-1;background:#000 url(img/stars.jpg) center/cover no-repeat}
+.glow{position:fixed;width:460px;height:460px;right:-220px;top:-220px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.12),rgba(255,255,255,0) 65%);z-index:-1;pointer-events:none}
+/* Блёстки осветлены полупрозрачным слоем: тёмные крапинки в картинке
+   иначе «съедают» буквы на чёрном фоне и тёмный текст на кнопках. */
+.glitter{background:linear-gradient(rgba(255,238,242,.55),rgba(255,238,242,.55)),#F0C4CA url(img/glitter.jpg) center/cover;-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 6px rgba(240,180,190,.45))}
+.foil{background:linear-gradient(rgba(255,236,240,.45),rgba(255,236,240,.45)),#E3A9AE url(img/glitter.jpg) center/cover;color:var(--dark)}
+@supports not ((-webkit-background-clip:text) or (background-clip:text)){.glitter{background:none;color:#FFD9DE}}
+.cond{font-family:var(--cond)}
+.page{max-width:440px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 24px) 22px calc(env(safe-area-inset-bottom,0px) + 120px);display:flex;flex-direction:column;gap:20px}
+.page.bare{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 30px)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.card{border-radius:24px;padding:16px 18px;background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+.row{display:flex;align-items:center;gap:12px}
+.between{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.iconbtn{width:44px;height:44px;flex:none;border-radius:22px;border:1px solid var(--line2);background:rgba(255,255,255,.08);display:grid;place-items:center;padding:0;color:var(--ink);text-decoration:none}
+.btn{display:flex;align-items:center;justify-content:center;width:100%;height:58px;border-radius:20px;border:0;font-weight:600;font-size:17px;text-decoration:none;box-shadow:0 10px 40px rgba(255,255,255,.14)}
+.btn.ghost{background:transparent;border:1px solid var(--line2);color:var(--ink);height:50px;font-size:15px;box-shadow:none}
+.btn:disabled{cursor:default}
+.btn.ghost:disabled{opacity:.6}
+::placeholder{color:rgba(244,241,248,.5);opacity:1}
+input[type=date]::-webkit-calendar-picker-indicator{opacity:1;cursor:pointer}
+.pill{height:40px;padding:0 16px;border-radius:20px;border:1px solid var(--line2);background:rgba(255,255,255,.08);font-size:14px}
+.link{border:0;background:none;color:var(--rose);font-weight:600;font-size:14px;padding:6px 0;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+
+/* home */
+.brand{font-family:var(--cond);font-weight:900;font-size:40px;line-height:.95;letter-spacing:-.01em;margin:0}
+.ring{width:104px;height:104px;border-radius:52px;display:grid;place-items:center;flex:none}
+.ring>div{width:84px;height:84px;border-radius:42px;background:#121019;display:grid;place-items:center;font-family:var(--cond);font-weight:900;font-size:36px}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tile{border-radius:22px;padding:7px 7px 12px;display:flex;flex-direction:column;gap:8px;text-decoration:none;color:var(--ink);background:var(--glass);border:1px solid var(--line)}
+.tile img{width:100%;height:96px;object-fit:cover;display:block;border-radius:16px}
+.tile b{font-family:var(--cond);font-weight:900;font-size:clamp(22px,7.5vw,30px);line-height:.95;padding-left:5px;white-space:nowrap;overflow:hidden}
+.tile span{font-size:12px;color:var(--muted);padding-left:5px}
+.duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.memeday{margin:0;height:196px;border-radius:24px;overflow:hidden;border:1px solid var(--line)}
+.memeday img{width:100%;height:100%;object-fit:cover;display:block}
+.cre{display:flex;flex-direction:column;justify-content:space-between;gap:6px;padding:12px 14px}
+.cre b{font-family:var(--cond);font-weight:800;font-size:28px;line-height:1}
+.cre .btn{height:44px;border-radius:14px;font-size:14px;box-shadow:none}
+
+/* nav */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:0 16px calc(env(safe-area-inset-bottom,0px) + 14px)}
+.nav-in{max-width:408px;margin:0 auto;border-radius:26px;background:rgba(20,18,28,.8);border:1px solid var(--line);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:8px}
+.nav a{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;color:var(--muted);text-decoration:none;padding:8px 0;border-radius:18px}
+.nav a.on{background:var(--ink);color:var(--dark);font-weight:600}
+
+/* workout */
+.sticker{width:112px;border-radius:20px;padding:4px;transform:rotate(5deg);box-shadow:0 12px 36px rgba(255,255,255,.18);margin-bottom:-40px}
+.sticker img{width:100%;height:112px;object-fit:cover;display:block;border-radius:16px}
+.title{font-family:var(--cond);font-weight:900;font-size:92px;line-height:.82;letter-spacing:-.03em;margin:0}
+.datechip{position:relative;display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--muted)}
+.datechip input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+.list{display:flex;flex-direction:column;gap:10px}
+.ex-open{border-radius:24px;padding:1.5px}
+.ex-open>div{border-radius:23px;padding:16px;background:var(--card);color:var(--ink);display:flex;flex-direction:column;gap:12px}
+.ex-row{border-radius:20px;padding:0 16px;min-height:60px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;gap:14px}
+.ex-row.off{background:var(--glass2);border-color:rgba(255,255,255,.10)}
+.chk{width:28px;height:28px;flex:none;border-radius:9px;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.04);padding:0;display:grid;place-items:center}
+.chk.on{border:0;background:linear-gradient(rgba(255,236,240,.45),rgba(255,236,240,.45)),#E3A9AE url(img/glitter.jpg) center/cover}
+.exname{border:0;background:none;padding:12px 0;text-align:left;font-weight:600;font-size:16px;flex:1;line-height:1.3}
+.off .exname{font-weight:500;color:#DCD6E6}
+.sets{display:grid;grid-template-columns:22px minmax(0,1fr) 18px minmax(0,1fr) 44px;gap:8px;align-items:center}
+.sets.reps{grid-template-columns:22px minmax(0,1fr) 30px 44px}
+.sets input{height:50px;width:100%;min-width:0;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.06);text-align:center;font-family:var(--cond);font-weight:800;font-size:26px}
+.sets input:focus{border-color:var(--rose);outline:none}
+.sets .x{width:44px;height:44px;border:0;background:transparent;color:var(--muted);font-size:20px}
+.addset{height:44px;border-radius:14px;border:0;background:linear-gradient(rgba(255,236,240,.45),rgba(255,236,240,.45)),#E3A9AE url(img/glitter.jpg) center/cover;color:var(--dark);font-size:14px;font-weight:600}
+
+/* history, body, awards */
+.h1{font-family:var(--cond);font-weight:900;font-size:50px;line-height:.92;letter-spacing:-.02em;margin:0}
+.big{font-family:var(--cond);font-weight:900;line-height:1}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border-radius:12px;padding:6px 10px;background:rgba(255,255,255,.08);font-family:var(--cond);font-weight:700;font-size:18px}
+.badge{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px}
+.chart{display:block;width:100%;height:auto}
+.measure{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.measure div{border-radius:18px;padding:10px 12px;background:var(--glass2);border:1px solid rgba(255,255,255,.10);display:flex;flex-direction:column;gap:2px}
+.measure b{font-family:var(--cond);font-weight:800;font-size:22px}
+.measure small{font-size:12px;color:var(--muted)}
+.bmi{position:relative;height:10px;border-radius:5px}
+.bmi i{position:absolute;top:-5px;width:20px;height:20px;margin-left:-10px;border-radius:10px;background:var(--ink);border:3px solid #07060B}
+.award{display:flex;align-items:center;gap:14px;padding:14px 16px}
+.award .ic{width:46px;height:46px;flex:none;border-radius:14px;display:grid;place-items:center}
+.award.lock .ic{background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--muted)}
+.award.lock b{color:#DCD6E6}
+
+/* calendar */
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.cal .wd{font-size:11px;color:var(--muted);text-align:center;padding-bottom:2px}
+.day{aspect-ratio:1;min-width:0;border-radius:14px;border:1.5px solid transparent;background:var(--glass2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;font-family:var(--cond);font-weight:700;font-size:19px;line-height:1;color:var(--ink)}
+.day small{font-family:var(--body);font-size:10px;font-weight:600;line-height:1;max-width:100%;overflow:hidden;white-space:nowrap}
+.day.plan{border-style:dashed;border-color:var(--rose);background:rgba(244,201,195,.08)}
+.day.plan small{color:var(--rose)}
+.day.miss{border-style:dashed;border-color:rgba(255,255,255,.25);color:var(--muted)}
+.day.done{color:var(--dark);border-color:transparent}
+.day.past{color:var(--muted)}
+.day.today{border-style:solid;border-color:var(--ink)}
+.day.done.today{box-shadow:0 0 0 2px #000 inset}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-2px;margin-right:6px;border:1.5px solid transparent}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill.on{background:var(--ink);color:var(--dark);border-color:var(--ink);font-weight:600}
+.pill.foil,.day.foil{background:linear-gradient(rgba(255,236,240,.45),rgba(255,236,240,.45)),#E3A9AE url(img/glitter.jpg) center/cover;color:var(--dark)}
+.day.foil small{font-weight:700}
+.day.miss small{text-decoration:line-through}
+
+/* record */
+.recframe{width:290px;max-width:80%;border-radius:28px;padding:6px;transform:rotate(-3deg);box-shadow:0 20px 60px rgba(255,255,255,.2);margin:0 auto}
+.recframe img{width:100%;height:300px;object-fit:cover;display:block;border-radius:22px}
+
+/* sheet, toast, login */
+.overlay{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
+.overlay[hidden]{display:none}
+.sheet{width:100%;max-width:440px;max-height:92vh;overflow:auto;border-radius:28px 28px 0 0;background:#0E0C14;border-top:1px solid var(--line);padding:22px 22px calc(env(safe-area-inset-bottom,0px) + 24px);display:flex;flex-direction:column;gap:16px}
+.field{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+.field input{height:50px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.06);padding:0 14px;font-size:17px;color:var(--ink)}
+.field input:focus{border-color:var(--rose);outline:none}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.memes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.memes div{position:relative}
+.memes img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;display:block}
+.memes button{position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:14px;border:0;background:rgba(0,0,0,.7);color:#fff;padding:0}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 100px);transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--dark);padding:12px 18px;border-radius:16px;font-weight:600;font-size:14px;max-width:90vw;text-align:center}
+.toast[hidden]{display:none}
+.err{color:#FFB3C1;font-size:14px;margin:0}
+.center{min-height:70vh;display:flex;flex-direction:column;justify-content:center;gap:20px}
+@media (prefers-reduced-motion:no-preference){.recframe{animation:pop .6s ease-out}@keyframes pop{from{transform:scale(.6) rotate(-12deg);opacity:0}to{transform:scale(1) rotate(-3deg);opacity:1}}}
+</style>
+</head>
+<body>
+<div class="sky" aria-hidden="true"></div>
+<div class="glow" aria-hidden="true"></div>
+<main id="app"></main>
+<nav class="nav" id="nav" aria-label="Разделы" hidden>
+  <div class="nav-in">
+    <a href="#/" data-nav="home"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"/></svg>Зал</a>
+    <a href="#/cal" data-nav="cal"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Календарь</a>
+    <a href="#/body" data-nav="body"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 17l5-5 4 3 7-8"/><path d="M15 7h5v5"/></svg>Тело</a>
+    <a href="#/awards" data-nav="awards"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M8.5 14L7 22l5-3 5 3-1.5-8"/></svg>Награды</a>
+  </div>
+</nav>
+<div class="overlay" id="overlay" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(function(){
+"use strict";
+const C = window.CONFIG || {};
+const $ = s => document.querySelector(s);
+const app = $('#app');
+
+/* ---------- справочники ---------- */
+const PROGRAMS = {
+  arms: {title:'Руки', img:'img/arms.jpg', alt:'Котёнок спит на гантеле', list:[
+    'Жим на грудь','Пресс','Тяга верхнего блока','Тяга блока к животу сидя','Жим вверх (плечи)',
+    'Обратные разведения (бабочка)','Разгибание на блоке (трицепс)','Разгибания из-за головы (трицепс)','Сгибание рук (бицепс)']},
+  legs: {title:'Ноги', img:'img/legs.jpg', alt:'Котик в гантели: «Сегодня у меня день попы»', list:[
+    'Приседания со штангой','Жим ногами','Ягодичный мостик','Сгибания ног лёжа','Разведение ног в тренажёре','Разгибание ног','Пресс']},
+  combo:{title:'Комбо', img:'img/combo.jpg', alt:'Котёнок делает стойку на голове', list:[
+    'Болгарские выпады','Пресс','Румынская тяга','Махи гантелями в сторону','Жим гантелей под углом 45°','Тяга гантелей к поясу одной рукой']}
+};
+const ORDER = ['arms','legs','combo'];
+const WEEK_GOAL = 3; // тренировок в неделю
+const REPS_ONLY = new Set(['Пресс']);
+const MEMES = ['img/meme-1.jpg','img/meme-2.jpg','img/meme-3.jpg','img/meme-4.jpg','img/meme-5.jpg','img/meme-6.jpg','img/record.jpg'];
+const MEASURES = [['waist','талия'],['hips','бёдра'],['glutes','ягодицы'],['chest','грудь'],['arm','рука'],['thigh','бедро']];
+
+/* ---------- утилиты ---------- */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const z = n => String(n).padStart(2,'0');
+const ymd = d => d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate());
+const parse = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d); };
+const addDays = (s,n) => { const d = parse(s); d.setDate(d.getDate()+n); return ymd(d); };
+const today = () => ymd(new Date());
+const monday = s => addDays(s, -((parse(s).getDay()+6)%7));
+const num = n => new Intl.NumberFormat('ru-RU',{maximumFractionDigits:1}).format(n);
+const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
+const fLong = s => cap(parse(s).toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'}));
+const fShort = s => parse(s).toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
+const fDay = s => parse(s).toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+const plural = (n,a,b,c) => { const m=n%10, h=n%100; if(m===1&&h!==11) return a; if(m>=2&&m<=4&&(h<12||h>14)) return b; return c; };
+const pnum = v => { if(v===''||v==null) return null; const n = parseFloat(String(v).replace(',','.')); return isFinite(n) ? n : null; };
+const sortByDate = (a,b) => a.date<b.date ? -1 : a.date>b.date ? 1 : 0;
+const ICON_BACK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+const ICON_CHECK = '<svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M8 14.5l4 4 8-9" fill="none" stroke="#0B0A10" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_CUP = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 6h3a3 3 0 0 1-3 4M7 6H4a3 3 0 0 0 3 4"/></svg>';
+
+/* ---------- состояние ---------- */
+const S = { user:null, profile:{}, workouts:[], body:[], creatine:new Set(), plan:new Map(), memes:[], draft:null, records:null, loaded:false, calMonth:null };
+
+if (!window.supabase || !C.SUPABASE_URL || C.SUPABASE_URL.includes('ВСТАВЬ')) {
+  app.innerHTML = '<div class="page bare center"><h1 class="brand glitter">Маргошка спортик</h1><p class="muted">Сайт ещё не настроен: заполни файл config.js по инструкции.</p></div>';
+  return;
+}
+const sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY);
+
+/* ---------- расчёты ---------- */
+const maxW = e => Math.max(0, ...e.sets.map(s => Number(s.w)||0));
+const maxR = e => Math.max(0, ...e.sets.map(s => Number(s.r)||0));
+const totalR = e => e.sets.reduce((a,s) => a+(Number(s.r)||0), 0);
+function entriesFor(name){
+  const out = [];
+  S.workouts.forEach(w => (w.entries||[]).forEach(e => { if (e.ex === name) out.push({id:w.id, date:w.date, program:w.program, e}); }));
+  return out.sort(sortByDate);
+}
+function bestBefore(name, date, excludeId){
+  let b = null;
+  entriesFor(name).forEach(x => { if (x.date < date && x.id !== excludeId) { const m = maxW(x.e); if (m > 0 && (b === null || m > b)) b = m; } });
+  return b;
+}
+function lastFor(name, date, excludeId){
+  const l = entriesFor(name).filter(x => x.id !== excludeId && x.date <= date);
+  return l.length ? l[l.length-1] : null;
+}
+function weekCount(){ const m = monday(today()), e = addDays(m,6); return S.workouts.filter(w => w.date >= m && w.date <= e).length; }
+function creStreak(){ let d = today(); if (!S.creatine.has(d)) d = addDays(d,-1); let n = 0; while (S.creatine.has(d)) { n++; d = addDays(d,-1); } return n; }
+function lastDate(p){ const l = S.workouts.filter(w => w.program === p).sort(sortByDate); return l.length ? l[l.length-1].date : null; }
+function memeOfDay(){
+  const pool = MEMES.concat(S.memes.map(m => m.url));
+  const day = Math.floor(parse(today()).getTime() / 86400000);
+  return pool[((day % pool.length) + pool.length) % pool.length];
+}
+function achievements(){
+  const ws = S.workouts.slice().sort(sortByDate);
+  const total = ws.length;
+  let records = 0; const best = {};
+  ws.forEach(w => (w.entries||[]).forEach(e => {
+    if (REPS_ONLY.has(e.ex)) return;
+    const m = maxW(e); if (!m) return;
+    const p = best[e.ex];
+    if (p !== undefined && m > p) records++;
+    if (p === undefined || m > p) best[e.ex] = m;
+  }));
+  const weeks = {}; ws.forEach(w => { const k = monday(w.date); weeks[k] = (weeks[k]||0)+1; });
+  const full = Object.keys(weeks).filter(k => weeks[k] >= 3).sort();
+  let run = 0, bestRun = 0, prev = null;
+  full.forEach(k => { run = (prev && addDays(prev,7) === k) ? run+1 : 1; bestRun = Math.max(bestRun, run); prev = k; });
+  const cd = [...S.creatine].sort(); let cr = 0, crBest = 0, cp = null;
+  cd.forEach(d => { cr = (cp && addDays(cp,1) === d) ? cr+1 : 1; crBest = Math.max(crBest, cr); cp = d; });
+  const weighed = S.body.some(b => b.weight != null) ? 1 : 0;
+  const A = (title, desc, cur, goal) => ({title, desc, done: cur >= goal, cur: Math.min(cur, goal), goal});
+  return [
+    A('Первая тренировка','Запиши первую тренировку', total, 1),
+    A('10 тренировок','Всего 10 записанных тренировок', total, 10),
+    A('25 тренировок','Всего 25 записанных тренировок', total, 25),
+    A('50 тренировок','Всего 50 записанных тренировок', total, 50),
+    A('100 тренировок','Всего 100 записанных тренировок', total, 100),
+    A('Неделя по плану','3 тренировки за одну неделю', full.length ? 1 : 0, 1),
+    A('Месяц по плану','4 недели подряд по 3 тренировки', bestRun, 4),
+    A('Первый рекорд','Подними больше, чем раньше', records, 1),
+    A('10 рекордов','10 раз побить свой рекорд', records, 10),
+    A('Креатин 7 дней','7 дней подряд без пропусков', crBest, 7),
+    A('Креатин 30 дней','30 дней подряд без пропусков', crBest, 30),
+    A('Первое взвешивание','Запиши вес в разделе «Тело»', weighed, 1)
+  ];
+}
+
+/* ---------- данные ---------- */
+async function loadAll(){
+  const uid = S.user.id;
+  const [p,w,b,c,pl] = await Promise.all([
+    sb.from('profiles').select('*').eq('user_id', uid).maybeSingle(),
+    sb.from('workouts').select('*').order('date'),
+    sb.from('body').select('*').order('date'),
+    sb.from('creatine').select('date').gte('date', addDays(today(), -400)),
+    sb.from('plan').select('date,program').gte('date', addDays(today(), -400))
+  ]);
+  const err = p.error || w.error || b.error || c.error;
+  if (err) throw err;
+  // Если таблицу plan ещё не создали, сайт работает дальше, просто без плана.
+  S.plan = new Map(pl.error ? [] : (pl.data||[]).map(r => [r.date, r.program || null]));
+  if (!p.data) { await sb.from('profiles').insert({user_id: uid}); S.profile = {user_id: uid}; }
+  else S.profile = p.data;
+  S.workouts = w.data || [];
+  S.body = b.data || [];
+  S.creatine = new Set((c.data||[]).map(r => r.date));
+  S.loaded = true;
+  loadMemes();
+}
+async function loadMemes(){
+  const uid = S.user.id;
+  const { data, error } = await sb.storage.from('memes').list(uid, {limit: 100});
+  if (error || !data) return;
+  S.memes = data.filter(f => f.name && !f.name.startsWith('.')).map(f => ({name: f.name, url: sb.storage.from('memes').getPublicUrl(uid+'/'+f.name).data.publicUrl}));
+}
+
+/* ---------- вход ---------- */
+function loginView(msg){
+  $('#nav').hidden = true;
+  app.innerHTML = `<div class="page bare center">
+    <h1 class="brand glitter" style="font-size:52px">Маргошка спортик</h1>
+    <label class="field">Почта<input id="email" type="email" autocomplete="email" inputmode="email"></label>
+    <label class="field">Пароль<input id="pass" type="password" autocomplete="current-password"></label>
+    ${msg ? `<p class="err">${esc(msg)}</p>` : ''}
+    <button class="btn foil" data-act="signin">Войти</button>
+    <button class="btn ghost" data-act="signup">Создать аккаунт</button>
+  </div>`;
+}
+async function auth(signup){
+  const email = $('#email').value.trim(), password = $('#pass').value;
+  if (!email || password.length < 6) return loginView('Введи почту и пароль не короче 6 символов.');
+  const r = signup ? await sb.auth.signUp({email, password}) : await sb.auth.signInWithPassword({email, password});
+  if (r.error) return loginView(r.error.message.includes('Invalid login') ? 'Неверная почта или пароль.' : r.error.message);
+  if (signup && !r.data.session) return loginView('Подтверди почту по ссылке из письма, потом войди.');
+}
+
+/* ---------- роутер ---------- */
+function route(){
+  if (!S.user) return loginView();
+  if (!S.loaded) { app.innerHTML = '<div class="page bare center"><p class="muted">Загружаю…</p></div>'; return; }
+  const h = location.hash.replace(/^#\/?/, '');
+  const [a, b] = h.split('/');
+  let nav = null;
+  if (a === 'w' && PROGRAMS[b]) { workoutView(b); }
+  else if (a === 'h' && b) { historyView(decodeURIComponent(b)); }
+  else if (a === 'cal') { nav = 'cal'; calView(); }
+  else if (a === 'body') { nav = 'body'; bodyView(); }
+  else if (a === 'awards') { nav = 'awards'; awardsView(); }
+  else if (a === 'record' && S.records) { recordView(); }
+  else { nav = 'home'; S.draft = null; homeView(); }
+  $('#nav').hidden = !nav;
+  document.querySelectorAll('[data-nav]').forEach(x => x.classList.toggle('on', x.dataset.nav === nav));
+}
+
+/* ---------- главная ---------- */
+function homeView(){
+  const wk = weekPlan(), goal = WEEK_GOAL;
+  const n = weekCount(), frac = Math.min(n/goal, 1) * 360;
+  const streak = creStreak(), done = S.creatine.has(today());
+  const tp = isPlanned(today()) && !S.workouts.some(w => w.date === today()) ? planTitle(planOf(today())) : null;
+  app.innerHTML = `<div class="page">
+    <div class="between">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <h1 class="brand glitter">Маргошка спортик</h1>
+        <span class="muted small" style="font-size:14px">${esc(fLong(today()))}</span>
+      </div>
+      <button class="iconbtn" data-act="settings" aria-label="Настройки"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+    </div>
+    <a class="card row" href="#/cal" style="gap:18px;border-radius:28px;text-decoration:none;color:inherit">
+      <div class="ring" style="background:conic-gradient(#FFE4DE 0deg, #F4C9C3 ${frac/2}deg, #D9A19C ${frac}deg, rgba(255,255,255,.12) ${frac}deg 360deg)"><div>${n}/${goal}</div></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <b style="font-weight:600;font-size:17px;line-height:1.25">Тренировки на этой неделе</b>
+        <span class="muted small">${wk.length ? 'По плану: ' + esc(wk.map(wd).join(', ')) : 'На этой неделе по плану отдых'}</span>
+        ${tp ? `<span class="small" style="color:var(--rose);font-weight:600">Сегодня по плану: ${esc(tp)}</span>` : ''}
+      </div>
+    </a>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span class="muted" style="font-size:14px">Что сегодня тренируем?</span>
+      <div class="tiles">${ORDER.map(p => { const d = lastDate(p); return `<a class="tile" href="#/w/${p}"><img src="${PROGRAMS[p].img}" alt="${esc(PROGRAMS[p].alt)}"><b class="glitter">${PROGRAMS[p].title}</b><span>${d ? esc(fShort(d)) : 'ещё не было'}</span></a>`; }).join('')}</div>
+    </div>
+    <div class="duo">
+      <figure class="memeday"><img src="${esc(memeOfDay())}" alt="Мем дня"></figure>
+      <div class="card cre">
+        <div class="between"><span class="muted small">Креатин</span></div>
+        <b>${streak} ${plural(streak,'день','дня','дней')}</b>
+        <span class="muted" style="font-size:12px">подряд</span>
+        <button class="btn foil" data-act="creatine" ${done ? 'disabled' : ''}>${done ? 'Выпила сегодня' : 'Выпила'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+async function markCreatine(){
+  const d = today();
+  const { error } = await sb.from('creatine').upsert({user_id: S.user.id, date: d}, {onConflict: 'user_id,date', ignoreDuplicates: true});
+  if (error) return toast('Не получилось сохранить. Проверь интернет.');
+  S.creatine.add(d); route(); toast('Креатин отмечен');
+}
+
+/* ---------- тренировка ---------- */
+function makeDraft(program, date){
+  const existing = S.workouts.find(w => w.program === program && w.date === date) || null;
+  const exId = existing ? existing.id : null;
+  const items = PROGRAMS[program].list.map(name => {
+    const saved = existing && (existing.entries||[]).find(e => e.ex === name);
+    if (saved) return {name, checked:true, open:true, from:'saved', sets: saved.sets.map(s => ({w: s.w == null ? '' : String(s.w).replace('.',','), r: String(s.r)}))};
+    const last = lastFor(name, date, exId);
+    const sets = last ? last.e.sets.map(s => ({w: s.w == null ? '' : String(s.w).replace('.',','), r: String(s.r)})) : [1,2,3,4].map(() => ({w:'', r:''}));
+    return {name, checked:false, open:false, from: last ? 'last' : 'none', sets};
+  });
+  return {program, date, existingId: exId, existingDate: existing ? existing.date : null, items};
+}
+function workoutView(program){
+  if (!S.draft || S.draft.program !== program) S.draft = makeDraft(program, today());
+  const d = S.draft, P = PROGRAMS[program];
+  const picked = d.items.filter(i => i.checked).length, all = picked === d.items.length;
+  app.innerHTML = `<div class="page bare">
+    <div class="between">
+      <a href="#/" class="iconbtn" aria-label="Назад">${ICON_BACK}</a>
+      <div class="sticker foil"><img src="${P.img}" alt="${esc(P.alt)}"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <label class="datechip">${esc(fLong(d.date))} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg><input type="date" id="wdate" value="${d.date}" max="${today()}" aria-label="Дата тренировки"></label>
+      <h1 class="title glitter">${P.title}</h1>
+    </div>
+    <div class="between"><span class="muted" style="font-size:14px">Выбрано ${picked} из ${d.items.length}</span><button class="pill" data-act="all">${all ? 'Снять все' : 'Выбрать все'}</button></div>
+    <div class="list">${d.items.map((it,i) => exBlock(it,i)).join('')}</div>
+    <button class="btn foil" data-act="save">Сохранить тренировку</button>
+    ${d.existingId ? '<button class="btn ghost" data-act="delw">Удалить эту тренировку</button>' : ''}
+  </div>`;
+}
+function exBlock(it, i){
+  const box = `<button class="chk ${it.checked ? 'on foil' : ''}" data-act="chk" data-i="${i}" aria-pressed="${it.checked}" aria-label="${esc(it.name)}">${it.checked ? ICON_CHECK : ''}</button>`;
+  if (!it.checked) return `<div class="ex-row off">${box}<button class="exname" data-act="chk" data-i="${i}">${esc(it.name)}</button></div>`;
+  if (!it.open) return `<div class="ex-row">${box}<button class="exname" data-act="fold" data-i="${i}">${esc(it.name)}</button><span class="muted small">${it.sets.length} ${plural(it.sets.length,'подход','подхода','подходов')}</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9C3D6" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></div>`;
+  const reps = REPS_ONLY.has(it.name);
+  const note = reps ? 'Без веса, только повторения' : it.from === 'last' ? 'Вес подставлен с прошлого раза' : it.from === 'saved' ? 'Сохранено' : 'Впиши вес и повторения';
+  const rows = it.sets.map((s,j) => reps
+    ? `<span class="muted small">${j+1}</span><input inputmode="numeric" data-i="${i}" data-j="${j}" data-f="r" value="${esc(s.r)}" aria-label="Повторения, подход ${j+1}" placeholder="0"><span class="muted small">раз</span><button class="x" data-act="rmset" data-i="${i}" data-j="${j}" aria-label="Удалить подход ${j+1}">×</button>`
+    : `<span class="muted small">${j+1}</span><input inputmode="decimal" data-i="${i}" data-j="${j}" data-f="w" value="${esc(s.w)}" aria-label="Вес, подход ${j+1}" placeholder="0"><span class="muted small" style="text-align:center">×</span><input inputmode="numeric" data-i="${i}" data-j="${j}" data-f="r" value="${esc(s.r)}" aria-label="Повторения, подход ${j+1}" placeholder="0"><button class="x" data-act="rmset" data-i="${i}" data-j="${j}" aria-label="Удалить подход ${j+1}">×</button>`).join('');
+  return `<div class="ex-open foil"><div>
+    <div class="row" style="gap:14px">${box}<button class="exname" data-act="fold" data-i="${i}">${esc(it.name)}</button></div>
+    <div class="between"><span class="muted" style="font-size:12px">${note}</span><a class="link" href="#/h/${encodeURIComponent(it.name)}" style="font-size:13px">История<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></div>
+    <div class="sets ${reps ? 'reps' : ''}">${rows}</div>
+    <button class="addset" data-act="addset" data-i="${i}">Добавить подход</button>
+  </div></div>`;
+}
+function changeDate(newDate){
+  if (!newDate || newDate === S.draft.date) return;
+  const d = S.draft;
+  const other = S.workouts.find(w => w.program === d.program && w.date === newDate && w.id !== d.existingId);
+  if (other) { S.draft = makeDraft(d.program, newDate); toast('На эту дату уже есть тренировка, открыла её'); }
+  else d.date = newDate;
+  route();
+}
+async function saveWorkout(){
+  const d = S.draft;
+  const entries = [];
+  d.items.filter(i => i.checked).forEach(it => {
+    const reps = REPS_ONLY.has(it.name);
+    const sets = it.sets.map(s => ({w: reps ? null : (pnum(s.w) ?? 0), r: Math.round(pnum(s.r) ?? 0)})).filter(s => s.r > 0);
+    if (sets.length) entries.push({ex: it.name, sets});
+  });
+  if (!entries.length) return toast('Отметь упражнение и впиши повторения');
+  const records = [];
+  entries.forEach(e => {
+    if (REPS_ONLY.has(e.ex)) return;
+    const m = maxW(e), prev = bestBefore(e.ex, d.date, d.existingId);
+    if (prev !== null && m > prev) records.push({name: e.ex, max: m, diff: m - prev});
+  });
+  const btn = document.querySelector('[data-act="save"]'); if (btn) btn.disabled = true;
+  const row = {user_id: S.user.id, date: d.date, program: d.program, entries, updated_at: new Date().toISOString()};
+  const { data, error } = await sb.from('workouts').upsert(row, {onConflict: 'user_id,date,program'}).select().single();
+  if (error) { if (btn) btn.disabled = false; return toast('Не получилось сохранить. Проверь интернет.'); }
+  if (d.existingId && d.existingDate !== d.date) {
+    await sb.from('workouts').delete().eq('id', d.existingId);
+    S.workouts = S.workouts.filter(w => w.id !== d.existingId);
+  }
+  S.workouts = S.workouts.filter(w => w.id !== data.id).concat(data);
+  S.draft = null;
+  if (records.length) { S.records = records; location.hash = '#/record'; }
+  else { toast('Тренировка сохранена'); location.hash = '#/'; }
+}
+async function deleteWorkout(){
+  const d = S.draft;
+  if (!d.existingId || !confirm('Удалить тренировку за ' + fDay(d.existingDate) + '?')) return;
+  const { error } = await sb.from('workouts').delete().eq('id', d.existingId);
+  if (error) return toast('Не получилось удалить. Проверь интернет.');
+  S.workouts = S.workouts.filter(w => w.id !== d.existingId);
+  S.draft = null; toast('Тренировка удалена'); location.hash = '#/';
+}
+
+/* ---------- календарь ---------- */
+const WD = ['пн','вт','ср','чт','пт','сб','вс'];
+// Постоянный план: вторник, четверг, суббота (0 = понедельник).
+const PLAN_DAYS = new Set([1,3,5]);
+const wdi = s => (parse(s).getDay()+6)%7;
+const wd = s => WD[wdi(s)];
+const planTitle = p => p && PROGRAMS[p] ? PROGRAMS[p].title : 'любая тренировка';
+const planShort = p => p && PROGRAMS[p] ? PROGRAMS[p].title.toLowerCase() : 'трен.';
+// Постоянный план считается с даты регистрации, чтобы старые дни не стали «пропусками».
+const planStart = () => String(S.profile.created_at || today()).slice(0,10);
+const isPlanDay = d => PLAN_DAYS.has(wdi(d)) && d >= planStart();
+// Что по плану в этот день: undefined — тренировки нет, null — любая, иначе программа.
+// В таблице plan хранятся только отличия от постоянного плана ('rest' = отдых в тренировочный день).
+function planOf(d){
+  if (S.plan.has(d)) { const v = S.plan.get(d); return v === 'rest' ? undefined : v; }
+  return isPlanDay(d) ? null : undefined;
+}
+const isPlanned = d => planOf(d) !== undefined;
+function weekPlan(){ const m = monday(today()), out = []; for (let i = 0; i < 7; i++) { const d = addDays(m,i); if (isPlanned(d)) out.push(d); } return out; }
+function calView(){
+  if (!S.calMonth) S.calMonth = today().slice(0,8) + '01';
+  const m = S.calMonth, first = parse(m), t = today();
+  const days = new Date(first.getFullYear(), first.getMonth()+1, 0).getDate();
+  const lead = (first.getDay()+6)%7;
+  const title = cap(first.toLocaleDateString('ru-RU',{month:'long'})) + ' ' + first.getFullYear();
+  const cells = [];
+  for (let i = 0; i < lead; i++) cells.push('<div></div>');
+  let doneN = 0, planN = 0;
+  for (let i = 1; i <= days; i++) {
+    const d = m.slice(0,8) + z(i);
+    const ws = S.workouts.filter(w => w.date === d);
+    const planned = isPlanned(d), p = planOf(d);
+    let cls = 'day', label = '';
+    if (ws.length) { cls += ' done foil'; label = ws.map(w => planShort(w.program)).join('+'); doneN++; }
+    else if (planned && d >= t) { cls += ' plan'; label = planShort(p); }
+    else if (planned) { cls += ' miss'; label = planShort(p); }
+    else if (d < t) cls += ' past';
+    if (planned) planN++;
+    if (d === t) cls += ' today';
+    const aria = fLong(d) + (ws.length ? ', тренировка: ' + ws.map(w => PROGRAMS[w.program].title).join(', ') : planned ? ', по плану: ' + planTitle(p) : '');
+    cells.push(`<button class="${cls}" data-act="day" data-d="${d}" aria-label="${esc(aria)}">${i}${label ? `<small>${esc(label)}</small>` : ''}</button>`);
+  }
+  const next = [];
+  for (let i = 0; i < 60 && next.length < 5; i++) { const d = addDays(t,i); if (isPlanned(d) && !S.workouts.some(w => w.date === d)) next.push([d, planOf(d)]); }
+  app.innerHTML = `<div class="page">
+    <div style="display:flex;flex-direction:column;gap:6px"><h1 class="brand glitter" style="font-size:48px">Календарь</h1><span class="muted" style="font-size:14px">Тренировки по плану: вт, чт, сб</span></div>
+    <div class="card" style="border-radius:28px;display:flex;flex-direction:column;gap:14px">
+      <div class="between">
+        <button class="iconbtn" data-act="calprev" aria-label="Предыдущий месяц">${ICON_BACK}</button>
+        <div style="text-align:center"><b class="big" style="font-size:28px">${esc(title)}</b><div class="muted" style="font-size:12px;margin-top:2px">${doneN} ${plural(doneN,'тренировка','тренировки','тренировок')} · в плане ${planN}</div></div>
+        <button class="iconbtn" data-act="calnext" aria-label="Следующий месяц" style="transform:scaleX(-1)">${ICON_BACK}</button>
+      </div>
+      <div class="cal">${WD.map(x => `<span class="wd">${x}</span>`).join('')}${cells.join('')}</div>
+      <div class="legend"><span><i class="foil"></i>была</span><span><i style="border-color:var(--rose);border-style:dashed"></i>в плане</span><span><i style="border-color:rgba(255,255,255,.3);border-style:dashed"></i>пропуск</span></div>
+    </div>
+    <span class="muted small" style="margin-top:-8px">Нажми на день, чтобы выбрать программу, поставить отдых или добавить лишнюю тренировку.</span>
+    ${next.length ? `<div class="list"><span class="muted" style="font-size:14px">Ближайшие тренировки</span>${next.map(([d,p]) => `<button class="card between" data-act="day" data-d="${d}" style="text-align:left;border-radius:20px;padding:14px 16px"><b style="font-weight:600;font-size:15px">${esc(d === t ? 'Сегодня' : cap(wd(d)) + ', ' + fDay(d))}</b><span class="muted small">${esc(planTitle(p))}</span></button>`).join('')}</div>` : ''}
+  </div>`;
+}
+function shiftMonth(n){ const d = parse(S.calMonth); d.setMonth(d.getMonth()+n); S.calMonth = ymd(d).slice(0,8)+'01'; route(); }
+function daySheet(date){
+  const t = today(), ws = S.workouts.filter(w => w.date === date);
+  const p = planOf(date), cur = p === undefined ? 'none' : p === null ? 'any' : p;
+  const opts = [['arms','Руки'],['legs','Ноги'],['combo','Комбо'],['any','Любая'],['none','Отдых']];
+  openSheet(`<div class="between"><h2 class="big glitter" style="font-size:30px;margin:0">${esc(fLong(date))}</h2><button class="iconbtn" data-act="close" aria-label="Закрыть">×</button></div>
+    ${date >= t ? `<div style="display:flex;flex-direction:column;gap:10px"><span class="muted small">Что по плану?</span>
+      <div class="pills">${opts.map(([k,l]) => `<button class="pill ${cur === k ? 'on' : ''}" data-act="setplan" data-d="${date}" data-p="${k}" aria-pressed="${cur === k}">${l}</button>`).join('')}</div></div>`
+      : cur !== 'none' ? `<span class="muted small">По плану было: ${esc(planTitle(p))}</span>` : ''}
+    ${date <= t ? `<div style="display:flex;flex-direction:column;gap:10px"><span class="muted small">${ws.length ? 'Тренировки за этот день' : 'Записать тренировку за этот день'}</span>
+      <div class="pills">${ORDER.map(p => { const w = ws.find(x => x.program === p); return `<button class="pill ${w ? 'on' : ''}" data-act="openw" data-d="${date}" data-p="${p}">${PROGRAMS[p].title}${w ? ' · ' + (w.entries||[]).length + ' упр.' : ''}</button>`; }).join('')}</div></div>` : ''}`);
+}
+async function setPlan(date, p){
+  // Храним только отличия от постоянного плана вт/чт/сб.
+  const v = p === 'none' ? 'rest' : p === 'any' ? null : p;
+  const same = isPlanDay(date) ? v === null : v === 'rest';
+  const q = same
+    ? sb.from('plan').delete().eq('user_id', S.user.id).eq('date', date)
+    : sb.from('plan').upsert({user_id: S.user.id, date, program: v}, {onConflict: 'user_id,date'});
+  const { error } = await q;
+  if (error) return toast('Не получилось сохранить план. Проверь, что таблица plan создана.');
+  if (same) S.plan.delete(date); else S.plan.set(date, v);
+  closeSheet(); route(); toast(p === 'none' ? 'Этот день — отдых' : 'Запланировано: ' + planTitle(planOf(date)));
+}
+
+/* ---------- рекорд ---------- */
+function recordView(){
+  const r = S.records, first = r[0];
+  app.innerHTML = `<div class="page bare" style="text-align:center;gap:22px">
+    <span class="card small" style="align-self:center;padding:8px 14px;border-radius:999px">Тренировка сохранена</span>
+    <h1 class="title glitter" style="font-size:84px">Новый рекорд</h1>
+    <div class="recframe foil"><img src="img/record.jpg" alt="Накачанный рыжий кот: «Капец ты муся, уже совсем большая»"></div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <b style="font-weight:600;font-size:18px">${esc(first.name)}</b>
+      <span class="big" style="font-size:40px">${num(first.max)} кг</span>
+      <span class="muted" style="font-size:14px">на ${num(first.diff)} кг больше прошлого рекорда</span>
+      ${r.length > 1 ? `<span class="muted" style="font-size:14px;margin-top:8px">А ещё: ${r.slice(1).map(x => esc(x.name)+', '+num(x.max)+' кг').join('; ')}</span>` : ''}
+    </div>
+    <a class="btn foil" href="#/">Готово</a>
+    ${S.profile.tg_chat_id ? '<button class="btn ghost" data-act="share">Отправить в Telegram</button>' : ''}
+  </div>`;
+}
+async function shareRecord(){
+  const { data: { session } } = await sb.auth.getSession();
+  const text = 'Новый рекорд! ' + S.records.map(x => x.name + ': ' + num(x.max) + ' кг').join(', ');
+  try {
+    const r = await fetch(C.SUPABASE_URL + '/functions/v1/bot?task=share', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':C.SUPABASE_ANON_KEY}, body: JSON.stringify({text})});
+    toast(r.ok ? 'Отправила в Telegram' : 'Бот не ответил, проверь настройки');
+  } catch (e) { toast('Бот не ответил, проверь интернет'); }
+}
+
+/* ---------- история упражнения ---------- */
+function historyView(name){
+  const reps = REPS_ONLY.has(name);
+  const list = entriesFor(name);
+  const val = x => reps ? totalR(x.e) : maxW(x.e);
+  let best = null; const marks = list.map(x => { const v = reps ? maxR(x.e) : maxW(x.e); const pr = best !== null && v > best; if (best === null || v > best) best = v; return pr; });
+  const recVal = list.length ? Math.max(...list.map(x => reps ? maxR(x.e) : maxW(x.e))) : 0;
+  const pts = list.slice(-12).map(val);
+  app.innerHTML = `<div class="page bare">
+    <button class="iconbtn" data-act="back" aria-label="Назад">${ICON_BACK}</button>
+    <div style="display:flex;flex-direction:column;gap:6px"><span class="muted" style="font-size:14px">История упражнения</span><h1 class="h1 glitter">${esc(name)}</h1></div>
+    ${list.length ? `
+    <div class="duo">
+      <div class="card"><span class="muted small">${reps ? 'Лучший подход' : 'Рекорд'}</span><div class="big glitter" style="font-size:36px;margin-top:4px">${num(recVal)} ${reps ? 'раз' : 'кг'}</div></div>
+      <div class="card"><span class="muted small">Тренировок</span><div class="big" style="font-size:36px;margin-top:4px">${list.length}</div></div>
+    </div>
+    ${pts.length >= 2 ? `<div class="card"><span class="muted small">${reps ? 'Повторений за тренировку' : 'Максимальный вес'}</span>${chart(pts)}<div class="between muted" style="font-size:12px"><span>${esc(fShort(list[Math.max(0,list.length-12)].date))}</span><span>${esc(fShort(list[list.length-1].date))}</span></div></div>` : ''}
+    <div class="list"><span class="muted" style="font-size:14px">${reps ? 'Все тренировки, повторения' : 'Все тренировки, вес × повторения'}</span>
+      ${list.map((x,k) => ({x, pr: marks[k]})).reverse().map(({x,pr}) => `<div class="card" style="display:flex;flex-direction:column;gap:10px;border-radius:22px;padding:14px 16px">
+        <div class="between"><b style="font-weight:600;font-size:15px">${esc(fDay(x.date))} <span class="muted" style="font-weight:400">${PROGRAMS[x.program] ? PROGRAMS[x.program].title : ''}</span></b>${pr ? '<span class="badge foil">Рекорд</span>' : ''}</div>
+        <div class="chips">${x.e.sets.map(s => `<span class="chip">${reps ? s.r : num(s.w)+' × '+s.r}</span>`).join('')}</div>
+      </div>`).join('')}
+    </div>` : '<div class="card"><b style="font-weight:600">Записей пока нет</b><p class="muted small" style="margin:6px 0 0">Сохрани тренировку с этим упражнением, и здесь появится история.</p></div>'}
+  </div>`;
+}
+function chart(vals){
+  const W = 320, H = 110, P = 12;
+  let lo = Math.min(...vals), hi = Math.max(...vals); if (lo === hi) { lo -= 1; hi += 1; }
+  const pts = vals.map((v,i) => [P + (W-2*P) * i/(vals.length-1), H-P - (H-2*P) * (v-lo)/(hi-lo)]);
+  const line = pts.map(p => p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const last = pts[pts.length-1];
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="График от ${num(vals[0])} до ${num(vals[vals.length-1])}">
+    <polyline points="${line}" fill="none" stroke="#F4C9C3" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+    ${pts.slice(0,-1).map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="#F4C9C3"/>`).join('')}
+    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="6" fill="#FFFFFF" stroke="#F4C9C3" stroke-width="3"/>
+  </svg>`;
+}
+
+/* ---------- тело ---------- */
+function bodyView(){
+  const ws = S.body.filter(b => b.weight != null);
+  const last = ws[ws.length-1], prev = ws[ws.length-2];
+  const h = Number(S.profile.height_cm) || null;
+  const bmi = last && h ? last.weight / Math.pow(h/100, 2) : null;
+  const pos = bmi ? Math.max(0, Math.min(100, (bmi-16)/(32-16)*100)) : 0;
+  const latest = {}; S.body.forEach(b => MEASURES.forEach(([k]) => { if (b[k] != null) latest[k] = b[k]; }));
+  const diff = last && prev ? last.weight - prev.weight : null;
+  app.innerHTML = `<div class="page">
+    <div class="between"><h1 class="brand glitter" style="font-size:48px">Тело</h1><button class="pill foil" style="border:0;font-weight:600" data-act="bodyedit">Записать вес</button></div>
+    <div class="card" style="border-radius:28px;display:flex;flex-direction:column;gap:10px">
+      <div class="between"><span class="muted small">${last ? 'Вес, ' + esc(fDay(last.date)) : 'Вес'}</span>${diff !== null ? `<span class="small" style="color:#F4C9C3">${diff > 0 ? '+' : diff < 0 ? '−' : ''}${num(Math.abs(diff))} кг с прошлого раза</span>` : ''}</div>
+      ${last ? `<div class="row" style="gap:8px;align-items:baseline"><span class="big glitter" style="font-size:96px;letter-spacing:-.03em">${num(last.weight)}</span><span class="muted" style="font-size:18px">кг</span></div>` : '<p class="muted" style="margin:0">Запиши вес, и здесь появится график.</p>'}
+      ${ws.length >= 2 ? chart(ws.slice(-12).map(b => Number(b.weight))) : ''}
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <div class="between"><span class="muted small">Индекс массы тела</span>${bmi ? `<span class="big" style="font-size:30px">${num(Math.round(bmi*10)/10)}</span>` : `<button class="link" data-act="settings">Указать рост</button>`}</div>
+      ${bmi ? `<div class="bmi foil"><i style="left:${pos}%"></i></div><div class="between muted" style="font-size:12px"><span>16</span><span>норма 18,5–24,9</span><span>32</span></div>` : '<span class="muted small">Для расчёта нужен рост и хотя бы один вес.</span>'}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="between"><span class="muted" style="font-size:14px">Замеры, см</span><button class="link" data-act="bodyedit">Добавить</button></div>
+      <div class="measure">${MEASURES.map(([k,l]) => `<div><b>${latest[k] != null ? num(latest[k]) : '—'}</b><small>${l}</small></div>`).join('')}</div>
+    </div>
+  </div>`;
+}
+function bodySheet(date){
+  date = date || today();
+  const cur = S.body.find(b => b.date === date) || {};
+  const v = x => x == null ? '' : String(x).replace('.',',');
+  openSheet(`<div class="between"><h2 class="big glitter" style="font-size:34px;margin:0">Вес и замеры</h2><button class="iconbtn" data-act="close" aria-label="Закрыть">×</button></div>
+    <label class="field">Дата<input type="date" id="bdate" value="${date}" max="${today()}"></label>
+    <label class="field">Вес, кг<input id="b_weight" inputmode="decimal" value="${v(cur.weight)}" placeholder="например 58,4"></label>
+    <span class="muted small">Замеры по желанию, в сантиметрах</span>
+    <div class="grid3">${MEASURES.map(([k,l]) => `<label class="field">${l}<input id="b_${k}" inputmode="decimal" value="${v(cur[k])}"></label>`).join('')}</div>
+    <button class="btn foil" data-act="bodysave">Сохранить</button>
+    ${cur.id ? '<button class="btn ghost" data-act="bodydel">Удалить запись</button>' : ''}`);
+}
+async function saveBody(){
+  const date = $('#bdate').value || today();
+  const row = {user_id: S.user.id, date, weight: pnum($('#b_weight').value)};
+  MEASURES.forEach(([k]) => row[k] = pnum($('#b_'+k).value));
+  if (Object.keys(row).every(k => k === 'user_id' || k === 'date' || row[k] == null)) return toast('Впиши вес или хотя бы один замер');
+  const { data, error } = await sb.from('body').upsert(row, {onConflict: 'user_id,date'}).select().single();
+  if (error) return toast('Не получилось сохранить. Проверь интернет.');
+  S.body = S.body.filter(b => b.date !== date).concat(data).sort(sortByDate);
+  closeSheet(); route(); toast('Сохранено');
+}
+async function deleteBody(){
+  const date = $('#bdate').value; const cur = S.body.find(b => b.date === date);
+  if (!cur || !confirm('Удалить запись за ' + fDay(date) + '?')) return;
+  const { error } = await sb.from('body').delete().eq('id', cur.id);
+  if (error) return toast('Не получилось удалить');
+  S.body = S.body.filter(b => b.id !== cur.id); closeSheet(); route();
+}
+
+/* ---------- награды ---------- */
+function awardsView(){
+  const list = achievements(), got = list.filter(a => a.done).length;
+  app.innerHTML = `<div class="page">
+    <div style="display:flex;flex-direction:column;gap:6px"><h1 class="brand glitter" style="font-size:48px">Награды</h1><span class="muted" style="font-size:14px">Получено ${got} из ${list.length}</span></div>
+    <div class="list">${list.map(a => `<div class="card award ${a.done ? '' : 'lock'}">
+      <div class="ic ${a.done ? 'foil' : ''}">${ICON_CUP}</div>
+      <div style="display:flex;flex-direction:column;gap:3px;flex:1"><b style="font-weight:600;font-size:16px">${esc(a.title)}</b><span class="muted small">${esc(a.desc)}</span></div>
+      ${a.done ? '' : `<span class="muted small">${a.cur}/${a.goal}</span>`}
+    </div>`).join('')}</div>
+  </div>`;
+}
+
+/* ---------- настройки ---------- */
+function settingsSheet(){
+  const tg = S.profile.tg_chat_id;
+  const link = 'https://t.me/' + encodeURIComponent(C.BOT_USERNAME || '') + '?start=' + S.user.id;
+  openSheet(`<div class="between"><h2 class="big glitter" style="font-size:34px;margin:0">Настройки</h2><button class="iconbtn" data-act="close" aria-label="Закрыть">×</button></div>
+    <label class="field">Рост, см<input id="height" inputmode="decimal" value="${S.profile.height_cm ? String(S.profile.height_cm).replace('.',',') : ''}"></label>
+    <button class="btn ghost" data-act="saveheight">Сохранить рост</button>
+    <div class="card" style="display:flex;flex-direction:column;gap:10px">
+      <b style="font-weight:600">Telegram</b>
+      ${tg ? '<span class="muted small">Бот подключён: напоминание о креатине в 8:00 и итоги недели по понедельникам.</span>'
+           : `<span class="muted small">Открой бота, нажми «Старт», потом вернись сюда и нажми «Проверить».</span>
+              <a class="btn foil" style="height:50px;font-size:15px" href="${esc(link)}" target="_blank" rel="noopener">Подключить Telegram</a>
+              <button class="btn ghost" data-act="checktg">Проверить</button>`}
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:10px">
+      <b style="font-weight:600">Мои мемы</b>
+      <span class="muted small">Они добавятся к мемам дня на главной.</span>
+      ${S.memes.length ? `<div class="memes">${S.memes.map(m => `<div><img src="${esc(m.url)}" alt="Мой мем"><button data-act="delmeme" data-name="${esc(m.name)}" aria-label="Удалить мем">×</button></div>`).join('')}</div>` : ''}
+      <label class="btn ghost" style="cursor:pointer">Добавить мем<input type="file" id="memefile" accept="image/*" hidden></label>
+    </div>
+    <button class="btn ghost" data-act="logout">Выйти</button>`);
+}
+async function saveHeight(){
+  const h = pnum($('#height').value);
+  if (!h || h < 100 || h > 230) return toast('Впиши рост в сантиметрах');
+  const { error } = await sb.from('profiles').update({height_cm: h}).eq('user_id', S.user.id);
+  if (error) return toast('Не получилось сохранить');
+  S.profile.height_cm = h; toast('Рост сохранён'); route();
+}
+async function checkTg(){
+  const { data } = await sb.from('profiles').select('*').eq('user_id', S.user.id).maybeSingle();
+  if (data) S.profile = data;
+  if (S.profile.tg_chat_id) { toast('Telegram подключён'); settingsSheet(); }
+  else toast('Пока не вижу. Нажми «Старт» в боте и попробуй ещё раз.');
+}
+async function uploadMeme(file){
+  if (!file) return;
+  if (file.size > 8 * 1024 * 1024) return toast('Картинка больше 8 МБ');
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const path = S.user.id + '/' + Date.now() + '.' + ext;
+  const { error } = await sb.storage.from('memes').upload(path, file, {contentType: file.type || 'image/jpeg'});
+  if (error) return toast('Не получилось загрузить');
+  await loadMemes(); toast('Мем добавлен'); settingsSheet();
+}
+async function deleteMeme(name){
+  if (!confirm('Удалить этот мем?')) return;
+  const { error } = await sb.storage.from('memes').remove([S.user.id + '/' + name]);
+  if (error) return toast('Не получилось удалить');
+  await loadMemes(); settingsSheet();
+}
+
+/* ---------- лист и уведомления ---------- */
+function openSheet(html){ $('#sheet').innerHTML = html; $('#overlay').hidden = false; }
+function closeSheet(){ $('#overlay').hidden = true; $('#sheet').innerHTML = ''; }
+let tt; function toast(m){ const t = $('#toast'); t.textContent = m; t.hidden = false; clearTimeout(tt); tt = setTimeout(() => t.hidden = true, 3000); }
+
+/* ---------- события ---------- */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act, i = +b.dataset.i, d = S.draft;
+  switch (a) {
+    case 'signin': auth(false); break;
+    case 'signup': auth(true); break;
+    case 'settings': settingsSheet(); break;
+    case 'close': closeSheet(); break;
+    case 'creatine': markCreatine(); break;
+    case 'chk': { const it = d.items[i]; it.checked = !it.checked; it.open = it.checked; route(); break; }
+    case 'fold': d.items[i].open = !d.items[i].open; route(); break;
+    case 'all': { const all = d.items.every(x => x.checked); d.items.forEach(x => { x.checked = !all; x.open = !all; }); route(); break; }
+    case 'addset': { const s = d.items[i].sets; const l = s[s.length-1] || {w:'', r:''}; s.push({w:l.w, r:l.r}); route(); break; }
+    case 'rmset': { const s = d.items[i].sets; s.splice(+b.dataset.j, 1); if (!s.length) s.push({w:'', r:''}); route(); break; }
+    case 'save': saveWorkout(); break;
+    case 'delw': deleteWorkout(); break;
+    case 'back': history.length > 1 ? history.back() : (location.hash = '#/'); break;
+    case 'share': shareRecord(); break;
+    case 'bodyedit': bodySheet(); break;
+    case 'bodysave': saveBody(); break;
+    case 'bodydel': deleteBody(); break;
+    case 'saveheight': saveHeight(); break;
+    case 'checktg': checkTg(); break;
+    case 'delmeme': deleteMeme(b.dataset.name); break;
+    case 'logout': closeSheet(); sb.auth.signOut(); break;
+    case 'calprev': shiftMonth(-1); break;
+    case 'calnext': shiftMonth(1); break;
+    case 'day': daySheet(b.dataset.d); break;
+    case 'setplan': setPlan(b.dataset.d, b.dataset.p); break;
+    case 'openw': S.draft = makeDraft(b.dataset.p, b.dataset.d); location.hash = '#/w/' + b.dataset.p; break;
+  }
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset && t.dataset.f && S.draft) S.draft.items[+t.dataset.i].sets[+t.dataset.j][t.dataset.f] = t.value;
+});
+document.addEventListener('change', e => {
+  if (e.target.id === 'wdate') changeDate(e.target.value);
+  if (e.target.id === 'bdate') bodySheet(e.target.value);
+  if (e.target.id === 'memefile') uploadMeme(e.target.files[0]);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#overlay').hidden) closeSheet(); });
+$('#overlay').addEventListener('click', e => { if (e.target.id === 'overlay') closeSheet(); });
+window.addEventListener('hashchange', () => { closeSheet(); route(); window.scrollTo(0,0); });
+
+/* ---------- старт ---------- */
+sb.auth.onAuthStateChange((ev, session) => { setTimeout(() => onSession(session), 0); });
+async function onSession(session){
+  const u = session ? session.user : null;
+  if (u && (!S.user || S.user.id !== u.id)) {
+    S.user = u; S.loaded = false; route();
+    try { await loadAll(); } catch (err) { app.innerHTML = '<div class="page bare center"><p class="err">Не удалось загрузить данные. Проверь интернет и настройки базы.</p></div>'; return; }
+    route();
+  } else if (!u) { S.user = null; S.loaded = false; S.draft = null; route(); }
+}
+})();
+</script>
+</body>
+</html>
