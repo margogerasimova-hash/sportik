@@ -43,6 +43,7 @@ a{color:var(--rose)}
 .row{display:flex;align-items:center;gap:12px}
 .between{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .iconbtn{width:44px;height:44px;flex:none;border-radius:22px;border:1px solid var(--line2);background:rgba(255,255,255,.08);display:grid;place-items:center;padding:0;color:var(--ink);text-decoration:none}
+.iconbtn:disabled{opacity:.3;cursor:default}
 .btn{display:flex;align-items:center;justify-content:center;width:100%;height:58px;border-radius:20px;border:0;font-weight:600;font-size:17px;text-decoration:none;box-shadow:0 10px 40px rgba(255,255,255,.14)}
 .btn.ghost{background:transparent;border:1px solid var(--line2);color:var(--ink);height:50px;font-size:15px;box-shadow:none}
 .btn:disabled{cursor:default}
@@ -194,6 +195,14 @@ const PROGRAMS = {
 const ORDER = ['arms','legs','combo'];
 const WEEK_GOAL = 3; // тренировок в неделю
 const REPS_ONLY = new Set(['Пресс']);
+// Свои упражнения хранятся в profiles.exercises: {arms:[{n:'Жим', r:false}], ...}.
+// r — упражнение без веса, только повторения. Если списка нет, берём стандартный.
+const defaultList = p => PROGRAMS[p].list.map(n => ({n, r: REPS_ONLY.has(n)}));
+const listOf = p => { const x = S.profile.exercises && S.profile.exercises[p]; return Array.isArray(x) ? x : defaultList(p); };
+function isReps(name){
+  for (const p of ORDER) { const f = listOf(p).find(x => x.n === name); if (f) return !!f.r; }
+  return REPS_ONLY.has(name);
+}
 const MEMES = ['img/meme-1.jpg','img/meme-2.jpg','img/meme-3.jpg','img/meme-4.jpg','img/meme-5.jpg','img/meme-6.jpg','img/record.jpg'];
 const MEASURES = [['waist','талия'],['hips','бёдра'],['glutes','ягодицы'],['chest','грудь'],['arm','рука'],['thigh','бедро']];
 
@@ -262,7 +271,7 @@ function achievements(){
   const total = ws.length;
   let records = 0; const best = {};
   ws.forEach(w => (w.entries||[]).forEach(e => {
-    if (REPS_ONLY.has(e.ex)) return;
+    if (isReps(e.ex)) return;
     const m = maxW(e); if (!m) return;
     const p = best[e.ex];
     if (p !== undefined && m > p) records++;
@@ -388,26 +397,36 @@ function homeView(){
     <div class="duo">
       <figure class="memeday"><img src="${esc(memeOfDay())}" alt="Мем дня"></figure>
       <div class="card cre">
-        <div class="between"><span class="muted small">Креатин</span></div>
+        <div class="between"><span class="muted small">Креатин</span>${S.creatine.has(addDays(today(),-1)) ? '' : '<button class="link" data-act="creyest" style="font-size:12px;padding:0" aria-label="Отметить креатин за вчера">+ вчера</button>'}</div>
         <b>${streak} ${plural(streak,'день','дня','дней')}</b>
         <span class="muted" style="font-size:12px">подряд</span>
-        <button class="btn foil" data-act="creatine" ${done ? 'disabled' : ''}>${done ? 'Выпила сегодня' : 'Выпила'}</button>
+        <button class="btn foil" data-act="${done ? 'creundo' : 'creatine'}" ${done ? 'aria-label="Выпила сегодня. Нажми, чтобы снять отметку"' : ''}>${done ? 'Выпила ✓' : 'Выпила'}</button>
       </div>
     </div>
   </div>`;
 }
-async function markCreatine(){
-  const d = today();
+async function markCreatine(d){
+  d = d || today();
   const { error } = await sb.from('creatine').upsert({user_id: S.user.id, date: d}, {onConflict: 'user_id,date', ignoreDuplicates: true});
   if (error) return toast('Не получилось сохранить. Проверь интернет.');
-  S.creatine.add(d); route(); toast('Креатин отмечен');
+  S.creatine.add(d); route(); toast(d === today() ? 'Креатин отмечен' : 'Отметила за вчера');
+}
+async function unmarkCreatine(){
+  const d = today();
+  if (!confirm('Снять отметку о креатине за сегодня?')) return;
+  const { error } = await sb.from('creatine').delete().eq('user_id', S.user.id).eq('date', d);
+  if (error) return toast('Не получилось. Проверь интернет.');
+  S.creatine.delete(d); route(); toast('Отметка снята');
 }
 
 /* ---------- тренировка ---------- */
 function makeDraft(program, date){
   const existing = S.workouts.find(w => w.program === program && w.date === date) || null;
   const exId = existing ? existing.id : null;
-  const items = PROGRAMS[program].list.map(name => {
+  const names = listOf(program).map(x => x.n);
+  // Упражнения, которые убрали из списка, но они есть в сохранённой тренировке, не теряем.
+  if (existing) (existing.entries||[]).forEach(e => { if (!names.includes(e.ex)) names.push(e.ex); });
+  const items = names.map(name => {
     const saved = existing && (existing.entries||[]).find(e => e.ex === name);
     if (saved) return {name, checked:true, open:true, from:'saved', sets: saved.sets.map(s => ({w: s.w == null ? '' : String(s.w).replace('.',','), r: String(s.r)}))};
     const last = lastFor(name, date, exId);
@@ -416,8 +435,37 @@ function makeDraft(program, date){
   });
   return {program, date, existingId: exId, existingDate: existing ? existing.date : null, items};
 }
+// Черновик тренировки живёт в браузере, чтобы не пропасть при перезагрузке вкладки.
+// Хранится отдельно для каждой программы, пока тренировку не сохранят или не сбросят.
+const DRAFT_DAYS = 3;
+const draftKey = p => 'draft:' + S.user.id + ':' + p;
+function persistDraft(){
+  const d = S.draft; if (!d || !d.dirty) return;
+  try { localStorage.setItem(draftKey(d.program), JSON.stringify({savedAt: Date.now(), d})); } catch (e) {}
+}
+function dropDraft(p){ try { localStorage.removeItem(draftKey(p)); } catch (e) {} }
+function restoreDraft(program, date){
+  let x = null; try { x = JSON.parse(localStorage.getItem(draftKey(program)) || 'null'); } catch (e) {}
+  if (!x || !x.d || x.d.program !== program || Date.now() - x.savedAt > DRAFT_DAYS*864e5) { if (x) dropDraft(program); return null; }
+  const d = x.d;
+  if (date && d.date !== date) return null;
+  // Тренировку могли удалить или поменять на другом устройстве.
+  if (d.existingId && !S.workouts.some(w => w.id === d.existingId)) { d.existingId = null; d.existingDate = null; }
+  d.restored = true;
+  return d;
+}
+function freshDraft(program, date){
+  const r = restoreDraft(program, date);
+  if (r) { setTimeout(() => toast('Вернула несохранённую тренировку'), 0); return r; }
+  return makeDraft(program, date || today());
+}
+function resetDraft(){
+  const d = S.draft;
+  if (!confirm('Сбросить несохранённые подходы?')) return;
+  dropDraft(d.program); S.draft = makeDraft(d.program, d.date); route();
+}
 function workoutView(program){
-  if (!S.draft || S.draft.program !== program) S.draft = makeDraft(program, today());
+  if (!S.draft || S.draft.program !== program) S.draft = freshDraft(program);
   const d = S.draft, P = PROGRAMS[program];
   const picked = d.items.filter(i => i.checked).length, all = picked === d.items.length;
   app.innerHTML = `<div class="page bare">
@@ -432,14 +480,16 @@ function workoutView(program){
     <div class="between"><span class="muted" style="font-size:14px">Выбрано ${picked} из ${d.items.length}</span><button class="pill" data-act="all">${all ? 'Снять все' : 'Выбрать все'}</button></div>
     <div class="list">${d.items.map((it,i) => exBlock(it,i)).join('')}</div>
     <button class="btn foil" data-act="save">Сохранить тренировку</button>
+    ${d.dirty ? '<button class="btn ghost" data-act="resetdraft">Сбросить изменения</button>' : ''}
     ${d.existingId ? '<button class="btn ghost" data-act="delw">Удалить эту тренировку</button>' : ''}
   </div>`;
+  persistDraft();
 }
 function exBlock(it, i){
   const box = `<button class="chk ${it.checked ? 'on foil' : ''}" data-act="chk" data-i="${i}" aria-pressed="${it.checked}" aria-label="${esc(it.name)}">${it.checked ? ICON_CHECK : ''}</button>`;
   if (!it.checked) return `<div class="ex-row off">${box}<button class="exname" data-act="chk" data-i="${i}">${esc(it.name)}</button></div>`;
   if (!it.open) return `<div class="ex-row">${box}<button class="exname" data-act="fold" data-i="${i}">${esc(it.name)}</button><span class="muted small">${it.sets.length} ${plural(it.sets.length,'подход','подхода','подходов')}</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9C3D6" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></div>`;
-  const reps = REPS_ONLY.has(it.name);
+  const reps = isReps(it.name);
   const note = reps ? 'Без веса, только повторения' : it.from === 'last' ? 'Вес подставлен с прошлого раза' : it.from === 'saved' ? 'Сохранено' : 'Впиши вес и повторения';
   const rows = it.sets.map((s,j) => reps
     ? `<span class="muted small">${j+1}</span><input inputmode="numeric" data-i="${i}" data-j="${j}" data-f="r" value="${esc(s.r)}" aria-label="Повторения, подход ${j+1}" placeholder="0"><span class="muted small">раз</span><button class="x" data-act="rmset" data-i="${i}" data-j="${j}" aria-label="Удалить подход ${j+1}">×</button>`
@@ -455,22 +505,22 @@ function changeDate(newDate){
   if (!newDate || newDate === S.draft.date) return;
   const d = S.draft;
   const other = S.workouts.find(w => w.program === d.program && w.date === newDate && w.id !== d.existingId);
-  if (other) { S.draft = makeDraft(d.program, newDate); toast('На эту дату уже есть тренировка, открыла её'); }
-  else d.date = newDate;
+  if (other) { dropDraft(d.program); S.draft = makeDraft(d.program, newDate); toast('На эту дату уже есть тренировка, открыла её'); }
+  else { d.date = newDate; d.dirty = true; }
   route();
 }
 async function saveWorkout(){
   const d = S.draft;
   const entries = [];
   d.items.filter(i => i.checked).forEach(it => {
-    const reps = REPS_ONLY.has(it.name);
+    const reps = isReps(it.name);
     const sets = it.sets.map(s => ({w: reps ? null : (pnum(s.w) ?? 0), r: Math.round(pnum(s.r) ?? 0)})).filter(s => s.r > 0);
     if (sets.length) entries.push({ex: it.name, sets});
   });
   if (!entries.length) return toast('Отметь упражнение и впиши повторения');
   const records = [];
   entries.forEach(e => {
-    if (REPS_ONLY.has(e.ex)) return;
+    if (isReps(e.ex)) return;
     const m = maxW(e), prev = bestBefore(e.ex, d.date, d.existingId);
     if (prev !== null && m > prev) records.push({name: e.ex, max: m, diff: m - prev});
   });
@@ -483,7 +533,7 @@ async function saveWorkout(){
     S.workouts = S.workouts.filter(w => w.id !== d.existingId);
   }
   S.workouts = S.workouts.filter(w => w.id !== data.id).concat(data);
-  S.draft = null;
+  dropDraft(d.program); S.draft = null;
   if (records.length) { S.records = records; location.hash = '#/record'; }
   else { toast('Тренировка сохранена'); location.hash = '#/'; }
 }
@@ -493,7 +543,7 @@ async function deleteWorkout(){
   const { error } = await sb.from('workouts').delete().eq('id', d.existingId);
   if (error) return toast('Не получилось удалить. Проверь интернет.');
   S.workouts = S.workouts.filter(w => w.id !== d.existingId);
-  S.draft = null; toast('Тренировка удалена'); location.hash = '#/';
+  dropDraft(d.program); S.draft = null; toast('Тренировка удалена'); location.hash = '#/';
 }
 
 /* ---------- календарь ---------- */
@@ -608,7 +658,7 @@ async function shareRecord(){
 
 /* ---------- история упражнения ---------- */
 function historyView(name){
-  const reps = REPS_ONLY.has(name);
+  const reps = isReps(name);
   const list = entriesFor(name);
   const val = x => reps ? totalR(x.e) : maxW(x.e);
   let best = null; const marks = list.map(x => { const v = reps ? maxR(x.e) : maxW(x.e); const pr = best !== null && v > best; if (best === null || v > best) best = v; return pr; });
@@ -713,6 +763,54 @@ function awardsView(){
   </div>`;
 }
 
+/* ---------- свои упражнения ---------- */
+let exProg = 'arms';
+function exSheet(p){
+  exProg = p || exProg;
+  const list = listOf(exProg), custom = !!(S.profile.exercises && Array.isArray(S.profile.exercises[exProg]));
+  const ib = 'style="width:40px;height:40px;border-radius:20px"';
+  openSheet(`<div class="between"><h2 class="big glitter" style="font-size:34px;margin:0">Упражнения</h2><button class="iconbtn" data-act="close" aria-label="Закрыть">×</button></div>
+    <div class="pills">${ORDER.map(k => `<button class="pill ${k === exProg ? 'on' : ''}" data-act="exedit" data-p="${k}" aria-pressed="${k === exProg}">${PROGRAMS[k].title}</button>`).join('')}</div>
+    <div class="list">${list.length ? list.map((x,i) => `<div class="ex-row" style="flex-wrap:wrap;gap:8px;padding:12px 10px 10px 16px">
+      <span style="flex:1 1 100%;font-weight:600;font-size:15px;line-height:1.3;min-width:0;overflow-wrap:break-word">${esc(x.n)}</span>
+      <div class="row" style="gap:6px;margin-left:auto"><button class="pill ${x.r ? 'on' : ''}" data-act="exreps" data-i="${i}" aria-pressed="${!!x.r}" style="height:34px;padding:0 10px;font-size:12px" title="Без веса, только повторения">без веса</button>
+      <button class="iconbtn" data-act="exmove" data-i="${i}" data-dir="-1" aria-label="Выше: ${esc(x.n)}" ${ib} ${i === 0 ? 'disabled' : ''}>↑</button>
+      <button class="iconbtn" data-act="exmove" data-i="${i}" data-dir="1" aria-label="Ниже: ${esc(x.n)}" ${ib} ${i === list.length-1 ? 'disabled' : ''}>↓</button>
+      <button class="iconbtn" data-act="exdel" data-i="${i}" aria-label="Убрать: ${esc(x.n)}" ${ib}>×</button></div>
+    </div>`).join('') : '<span class="muted small">Список пуст. Добавь первое упражнение.</span>'}</div>
+    <label class="field">Новое упражнение<input id="exname" maxlength="60" placeholder="например Гиперэкстензия" autocomplete="off"></label>
+    <label class="row small muted" style="gap:10px;cursor:pointer"><input type="checkbox" id="exr" style="width:20px;height:20px;accent-color:#F4C9C3"> Без веса, только повторения</label>
+    <button class="btn foil" data-act="exadd">Добавить в ${esc(PROGRAMS[exProg].title)}</button>
+    <span class="muted small">История и рекорды не пропадают, если убрать упражнение из списка.</span>
+    ${custom ? '<button class="btn ghost" data-act="exreset">Вернуть стандартный список</button>' : ''}`);
+}
+async function saveExercises(list){
+  const all = Object.assign({}, S.profile.exercises || {});
+  if (list === null) delete all[exProg]; else all[exProg] = list;
+  const val = Object.keys(all).length ? all : null;
+  const { error } = await sb.from('profiles').update({exercises: val}).eq('user_id', S.user.id);
+  if (error) { toast(/exercises/.test(error.message || '') ? 'Сначала добавь столбец exercises в базе: запусти 1-schema.sql' : 'Не получилось сохранить. Проверь интернет.'); return false; }
+  S.profile.exercises = val;
+  // Открытый черновик этой программы перестраиваем, только если в нём ещё ничего не вводили.
+  if (S.draft && S.draft.program === exProg && !S.draft.dirty) S.draft = null;
+  exSheet(); return true;
+}
+function exAction(a, i, dir){
+  const list = listOf(exProg).map(x => ({n: x.n, r: !!x.r}));
+  if (a === 'exadd') {
+    const n = ($('#exname').value || '').trim().replace(/\s+/g, ' ');
+    if (!n) return toast('Впиши название упражнения');
+    if (list.some(x => x.n.toLowerCase() === n.toLowerCase())) return toast('Такое упражнение уже есть');
+    list.push({n, r: $('#exr').checked});
+    return saveExercises(list).then(ok => ok && toast('Добавила: ' + n));
+  }
+  if (a === 'exdel') { if (!confirm('Убрать «' + list[i].n + '» из списка?')) return; list.splice(i, 1); }
+  if (a === 'exmove') { const j = i + dir; if (j < 0 || j >= list.length) return; [list[i], list[j]] = [list[j], list[i]]; }
+  if (a === 'exreps') list[i].r = !list[i].r;
+  if (a === 'exreset') { if (!confirm('Вернуть стандартный список для «' + PROGRAMS[exProg].title + '»?')) return; return saveExercises(null); }
+  saveExercises(list);
+}
+
 /* ---------- настройки ---------- */
 function settingsSheet(){
   const tg = S.profile.tg_chat_id;
@@ -726,6 +824,11 @@ function settingsSheet(){
            : `<span class="muted small">Открой бота, нажми «Старт», потом вернись сюда и нажми «Проверить».</span>
               <a class="btn foil" style="height:50px;font-size:15px" href="${esc(link)}" target="_blank" rel="noopener">Подключить Telegram</a>
               <button class="btn ghost" data-act="checktg">Проверить</button>`}
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:10px">
+      <b style="font-weight:600">Мои упражнения</b>
+      <span class="muted small">Добавь, убери или поменяй порядок упражнений в Руках, Ногах и Комбо.</span>
+      <button class="btn ghost" data-act="exedit" data-p="arms">Настроить упражнения</button>
     </div>
     <div class="card" style="display:flex;flex-direction:column;gap:10px">
       <b style="font-weight:600">Мои мемы</b>
@@ -779,13 +882,18 @@ document.addEventListener('click', e => {
     case 'settings': settingsSheet(); break;
     case 'close': closeSheet(); break;
     case 'creatine': markCreatine(); break;
-    case 'chk': { const it = d.items[i]; it.checked = !it.checked; it.open = it.checked; route(); break; }
+    case 'creyest': markCreatine(addDays(today(),-1)); break;
+    case 'creundo': unmarkCreatine(); break;
+    case 'chk': { d.dirty = true; const it = d.items[i]; it.checked = !it.checked; it.open = it.checked; route(); break; }
     case 'fold': d.items[i].open = !d.items[i].open; route(); break;
-    case 'all': { const all = d.items.every(x => x.checked); d.items.forEach(x => { x.checked = !all; x.open = !all; }); route(); break; }
-    case 'addset': { const s = d.items[i].sets; const l = s[s.length-1] || {w:'', r:''}; s.push({w:l.w, r:l.r}); route(); break; }
-    case 'rmset': { const s = d.items[i].sets; s.splice(+b.dataset.j, 1); if (!s.length) s.push({w:'', r:''}); route(); break; }
+    case 'all': { d.dirty = true; const all = d.items.every(x => x.checked); d.items.forEach(x => { x.checked = !all; x.open = !all; }); route(); break; }
+    case 'addset': { d.dirty = true; const s = d.items[i].sets; const l = s[s.length-1] || {w:'', r:''}; s.push({w:l.w, r:l.r}); route(); break; }
+    case 'rmset': { d.dirty = true; const s = d.items[i].sets; s.splice(+b.dataset.j, 1); if (!s.length) s.push({w:'', r:''}); route(); break; }
     case 'save': saveWorkout(); break;
     case 'delw': deleteWorkout(); break;
+    case 'resetdraft': resetDraft(); break;
+    case 'exedit': exSheet(b.dataset.p); break;
+    case 'exadd': case 'exdel': case 'exmove': case 'exreps': case 'exreset': exAction(a, i, +b.dataset.dir); break;
     case 'back': history.length > 1 ? history.back() : (location.hash = '#/'); break;
     case 'share': shareRecord(); break;
     case 'bodyedit': bodySheet(); break;
@@ -799,18 +907,19 @@ document.addEventListener('click', e => {
     case 'calnext': shiftMonth(1); break;
     case 'day': daySheet(b.dataset.d); break;
     case 'setplan': setPlan(b.dataset.d, b.dataset.p); break;
-    case 'openw': S.draft = makeDraft(b.dataset.p, b.dataset.d); location.hash = '#/w/' + b.dataset.p; break;
+    case 'openw': S.draft = freshDraft(b.dataset.p, b.dataset.d); location.hash = '#/w/' + b.dataset.p; break;
   }
 });
 document.addEventListener('input', e => {
   const t = e.target;
-  if (t.dataset && t.dataset.f && S.draft) S.draft.items[+t.dataset.i].sets[+t.dataset.j][t.dataset.f] = t.value;
+  if (t.dataset && t.dataset.f && S.draft) { S.draft.items[+t.dataset.i].sets[+t.dataset.j][t.dataset.f] = t.value; S.draft.dirty = true; persistDraft(); }
 });
 document.addEventListener('change', e => {
   if (e.target.id === 'wdate') changeDate(e.target.value);
   if (e.target.id === 'bdate') bodySheet(e.target.value);
   if (e.target.id === 'memefile') uploadMeme(e.target.files[0]);
 });
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'exname') { e.preventDefault(); exAction('exadd'); } });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#overlay').hidden) closeSheet(); });
 $('#overlay').addEventListener('click', e => { if (e.target.id === 'overlay') closeSheet(); });
 window.addEventListener('hashchange', () => { closeSheet(); route(); window.scrollTo(0,0); });
