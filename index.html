@@ -48,6 +48,15 @@ a{color:var(--rose)}
 .btn.ghost{background:transparent;border:1px solid var(--line2);color:var(--ink);height:50px;font-size:15px;box-shadow:none}
 .btn:disabled{cursor:default}
 .btn.ghost:disabled{opacity:.6}
+.btn.sm{height:50px;font-size:15px;box-shadow:none}
+.btn.big{height:64px;font-size:18px}
+/* Второстепенная кнопка: прозрачная, с блестящей розовой обводкой. */
+.btn.outline{position:relative;background:transparent;color:#FFD9DE;height:50px;font-size:15px;box-shadow:0 0 14px rgba(240,180,190,.22)}
+/* Тонкая блестящая обводка для карточек на главной. */
+.gl{position:relative;border-color:transparent!important}
+.gl::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1.5px;background:linear-gradient(rgba(255,236,240,.25),rgba(255,236,240,.25)),#E3A9AE url(img/glitter.jpg) center/cover;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.8}
+.memeday.gl{border:0}.memeday.gl::before{inset:0;z-index:1}
+.btn.outline::before,.addset::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:2.5px;background:linear-gradient(rgba(255,236,240,.2),rgba(255,236,240,.2)),#E3A9AE url(img/glitter.jpg) center/cover;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
 ::placeholder{color:rgba(244,241,248,.5);opacity:1}
 input[type=date]::-webkit-calendar-picker-indicator{opacity:1;cursor:pointer}
 .pill{height:40px;padding:0 16px;border-radius:20px;border:1px solid var(--line2);background:rgba(255,255,255,.08);font-size:14px}
@@ -95,7 +104,7 @@ input[type=date]::-webkit-calendar-picker-indicator{opacity:1;cursor:pointer}
 .sets input{height:50px;width:100%;min-width:0;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.06);text-align:center;font-family:var(--cond);font-weight:800;font-size:26px}
 .sets input:focus{border-color:var(--rose);outline:none}
 .sets .x{width:44px;height:44px;border:0;background:transparent;color:var(--muted);font-size:20px}
-.addset{height:44px;border-radius:14px;border:0;background:linear-gradient(rgba(255,236,240,.45),rgba(255,236,240,.45)),#E3A9AE url(img/glitter.jpg) center/cover;color:var(--dark);font-size:14px;font-weight:600}
+.addset{position:relative;height:44px;border-radius:14px;border:0;background:transparent;color:#FFD9DE;font-size:14px;font-weight:600}
 
 /* history, body, awards */
 .h1{font-family:var(--cond);font-weight:900;font-size:50px;line-height:.92;letter-spacing:-.02em;margin:0}
@@ -143,6 +152,7 @@ input[type=date]::-webkit-calendar-picker-indicator{opacity:1;cursor:pointer}
 .overlay{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
 .overlay[hidden]{display:none}
 .sheet{width:100%;max-width:440px;max-height:92vh;overflow:auto;border-radius:28px 28px 0 0;background:#0E0C14;border-top:1px solid var(--line);padding:22px 22px calc(env(safe-area-inset-bottom,0px) + 24px);display:flex;flex-direction:column;gap:16px}
+.sheet>*,.sheet .list>*{flex-shrink:0}
 .field{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
 .field input{height:50px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.06);padding:0 14px;font-size:17px;color:var(--ink)}
 .field input:focus{border-color:var(--rose);outline:none}
@@ -339,7 +349,7 @@ function loginView(msg){
     <label class="field">Пароль<input id="pass" type="password" autocomplete="current-password"></label>
     ${msg ? `<p class="err">${esc(msg)}</p>` : ''}
     <button class="btn foil" data-act="signin">Войти</button>
-    <button class="btn ghost" data-act="signup">Создать аккаунт</button>
+    <button class="btn outline" data-act="signup">Создать аккаунт</button>
   </div>`;
 }
 async function auth(signup){
@@ -380,9 +390,9 @@ function homeView(){
         <h1 class="brand glitter">Маргошка спортик</h1>
         <span class="muted small" style="font-size:14px">${esc(fLong(today()))}</span>
       </div>
-      <button class="iconbtn" data-act="settings" aria-label="Настройки"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+      <button class="iconbtn gl" data-act="settings" aria-label="Настройки"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
     </div>
-    <a class="card row" href="#/cal" style="gap:18px;border-radius:28px;text-decoration:none;color:inherit">
+    <a class="card row gl" href="#/cal" style="gap:18px;border-radius:28px;text-decoration:none;color:inherit">
       <div class="ring" style="background:conic-gradient(#FFE4DE 0deg, #F4C9C3 ${frac/2}deg, #D9A19C ${frac}deg, rgba(255,255,255,.12) ${frac}deg 360deg)"><div>${n}/${goal}</div></div>
       <div style="display:flex;flex-direction:column;gap:6px">
         <b style="font-weight:600;font-size:17px;line-height:1.25">Тренировки на этой неделе</b>
@@ -392,11 +402,11 @@ function homeView(){
     </a>
     <div style="display:flex;flex-direction:column;gap:10px">
       <span class="muted" style="font-size:14px">Что сегодня тренируем?</span>
-      <div class="tiles">${ORDER.map(p => { const d = lastDate(p); return `<a class="tile" href="#/w/${p}"><img src="${PROGRAMS[p].img}" alt="${esc(PROGRAMS[p].alt)}"><b class="glitter">${PROGRAMS[p].title}</b><span>${d ? esc(fShort(d)) : 'ещё не было'}</span></a>`; }).join('')}</div>
+      <div class="tiles">${ORDER.map(p => { const d = lastDate(p); return `<a class="tile gl" href="#/w/${p}"><img src="${PROGRAMS[p].img}" alt="${esc(PROGRAMS[p].alt)}"><b class="glitter">${PROGRAMS[p].title}</b><span>${d ? esc(fShort(d)) : 'ещё не было'}</span></a>`; }).join('')}</div>
     </div>
     <div class="duo">
-      <figure class="memeday"><img src="${esc(memeOfDay())}" alt="Мем дня"></figure>
-      <div class="card cre">
+      <figure class="memeday gl"><img src="${esc(memeOfDay())}" alt="Мем дня"></figure>
+      <div class="card cre gl">
         <div class="between"><span class="muted small">Креатин</span>${S.creatine.has(addDays(today(),-1)) ? '' : '<button class="link" data-act="creyest" style="font-size:12px;padding:0" aria-label="Отметить креатин за вчера">+ вчера</button>'}</div>
         <b>${streak} ${plural(streak,'день','дня','дней')}</b>
         <span class="muted" style="font-size:12px">подряд</span>
@@ -480,7 +490,7 @@ function workoutView(program){
     <div class="between"><span class="muted" style="font-size:14px">Выбрано ${picked} из ${d.items.length}</span><button class="pill" data-act="all">${all ? 'Снять все' : 'Выбрать все'}</button></div>
     <div class="list">${d.items.map((it,i) => exBlock(it,i)).join('')}</div>
     <button class="btn foil" data-act="save">Сохранить тренировку</button>
-    ${d.dirty ? '<button class="btn ghost" data-act="resetdraft">Сбросить изменения</button>' : ''}
+    ${d.dirty ? '<button class="btn outline" data-act="resetdraft">Сбросить изменения</button>' : ''}
     ${d.existingId ? '<button class="btn ghost" data-act="delw">Удалить эту тренировку</button>' : ''}
   </div>`;
   persistDraft();
@@ -644,7 +654,7 @@ function recordView(){
       ${r.length > 1 ? `<span class="muted" style="font-size:14px;margin-top:8px">А ещё: ${r.slice(1).map(x => esc(x.name)+', '+num(x.max)+' кг').join('; ')}</span>` : ''}
     </div>
     <a class="btn foil" href="#/">Готово</a>
-    ${S.profile.tg_chat_id ? '<button class="btn ghost" data-act="share">Отправить в Telegram</button>' : ''}
+    ${S.profile.tg_chat_id ? '<button class="btn outline" data-act="share">Отправить в Telegram</button>' : ''}
   </div>`;
 }
 async function shareRecord(){
@@ -780,9 +790,9 @@ function exSheet(p){
     </div>`).join('') : '<span class="muted small">Список пуст. Добавь первое упражнение.</span>'}</div>
     <label class="field">Новое упражнение<input id="exname" maxlength="60" placeholder="например Гиперэкстензия" autocomplete="off"></label>
     <label class="row small muted" style="gap:10px;cursor:pointer"><input type="checkbox" id="exr" style="width:20px;height:20px;accent-color:#F4C9C3"> Без веса, только повторения</label>
-    <button class="btn foil" data-act="exadd">Добавить в ${esc(PROGRAMS[exProg].title)}</button>
+    <button class="btn foil big" data-act="exadd">Добавить в ${esc(PROGRAMS[exProg].title)}</button>
     <span class="muted small">История и рекорды не пропадают, если убрать упражнение из списка.</span>
-    ${custom ? '<button class="btn ghost" data-act="exreset">Вернуть стандартный список</button>' : ''}`);
+    ${custom ? '<button class="btn outline" data-act="exreset">Вернуть стандартный список</button>' : ''}`);
 }
 async function saveExercises(list){
   const all = Object.assign({}, S.profile.exercises || {});
@@ -817,7 +827,7 @@ function settingsSheet(){
   const link = 'https://t.me/' + encodeURIComponent(C.BOT_USERNAME || '') + '?start=' + S.user.id;
   openSheet(`<div class="between"><h2 class="big glitter" style="font-size:34px;margin:0">Настройки</h2><button class="iconbtn" data-act="close" aria-label="Закрыть">×</button></div>
     <label class="field">Рост, см<input id="height" inputmode="decimal" value="${S.profile.height_cm ? String(S.profile.height_cm).replace('.',',') : ''}"></label>
-    <button class="btn ghost" data-act="saveheight">Сохранить рост</button>
+    <button class="btn outline" data-act="saveheight">Сохранить рост</button>
     <div class="card" style="display:flex;flex-direction:column;gap:10px">
       <b style="font-weight:600">Telegram</b>
       ${tg ? '<span class="muted small">Бот подключён: напоминание о креатине в 8:00 и итоги недели по понедельникам.</span>'
@@ -828,13 +838,13 @@ function settingsSheet(){
     <div class="card" style="display:flex;flex-direction:column;gap:10px">
       <b style="font-weight:600">Мои упражнения</b>
       <span class="muted small">Добавь, убери или поменяй порядок упражнений в Руках, Ногах и Комбо.</span>
-      <button class="btn ghost" data-act="exedit" data-p="arms">Настроить упражнения</button>
+      <button class="btn outline" data-act="exedit" data-p="arms">Настроить упражнения</button>
     </div>
     <div class="card" style="display:flex;flex-direction:column;gap:10px">
       <b style="font-weight:600">Мои мемы</b>
       <span class="muted small">Они добавятся к мемам дня на главной.</span>
       ${S.memes.length ? `<div class="memes">${S.memes.map(m => `<div><img src="${esc(m.url)}" alt="Мой мем"><button data-act="delmeme" data-name="${esc(m.name)}" aria-label="Удалить мем">×</button></div>`).join('')}</div>` : ''}
-      <label class="btn ghost" style="cursor:pointer">Добавить мем<input type="file" id="memefile" accept="image/*" hidden></label>
+      <label class="btn outline" style="cursor:pointer">Добавить мем<input type="file" id="memefile" accept="image/*" hidden></label>
     </div>
     <button class="btn ghost" data-act="logout">Выйти</button>`);
 }
