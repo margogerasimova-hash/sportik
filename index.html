@@ -247,10 +247,15 @@ function lastFor(name, date, excludeId){
 function weekCount(){ const m = monday(today()), e = addDays(m,6); return S.workouts.filter(w => w.date >= m && w.date <= e).length; }
 function creStreak(){ let d = today(); if (!S.creatine.has(d)) d = addDays(d,-1); let n = 0; while (S.creatine.has(d)) { n++; d = addDays(d,-1); } return n; }
 function lastDate(p){ const l = S.workouts.filter(w => w.program === p).sort(sortByDate); return l.length ? l[l.length-1].date : null; }
+// Случайный мем при каждой загрузке страницы, не такой же, как в прошлый раз.
 function memeOfDay(){
+  if (S.meme) return S.meme;
   const pool = MEMES.concat(S.memes.map(m => m.url));
-  const day = Math.floor(parse(today()).getTime() / 86400000);
-  return pool[((day % pool.length) + pool.length) % pool.length];
+  let last = null; try { last = localStorage.getItem('lastMeme'); } catch (e) {}
+  const pick = pool.length > 1 ? pool.filter(u => u !== last) : pool;
+  S.meme = pick[Math.floor(Math.random() * pick.length)];
+  try { localStorage.setItem('lastMeme', S.meme); } catch (e) {}
+  return S.meme;
 }
 function achievements(){
   const ws = S.workouts.slice().sort(sortByDate);
@@ -306,8 +311,8 @@ async function loadAll(){
   S.workouts = w.data || [];
   S.body = b.data || [];
   S.creatine = new Set((c.data||[]).map(r => r.date));
+  try { await loadMemes(); } catch (e) {} // свои мемы тоже участвуют в выборе мема
   S.loaded = true;
-  loadMemes();
 }
 async function loadMemes(){
   const uid = S.user.id;
